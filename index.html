@@ -60,7 +60,7 @@ function rnd(a, base = 0){
     return(base + Math.random() * a);
 }
 
-//такой вот элегантный способ создать объект со свойствами и методами
+//такой вот хитрый способ создать объект со свойствами и методами
 //потом создаём новую точку вызовом конструктора new dot()
 let dot = function(){
     //прописываются все индивидуальные свойства каждой точки
@@ -148,7 +148,6 @@ function plot(){
     art.fillRect(0, 0, cw, ch);
 
 //координаты мышки в нулевую точку 
-
     dots[0].x = MouseCoords.x;
     dots[0].y = MouseCoords.y;
 
@@ -157,10 +156,10 @@ function plot(){
         dots[i].update(); //обновляются координаты точки
         art.fillStyle = getColor(i);
 
-    // Генерируем случайный размер звёздочки (5–20 пикселей)
-    const starSize = Math.floor(Math.random() * 6) + 3; // 1 + [0..5] = 1..6
+    // Генерируем случайный размер звездочки (3–8 пикселей)
+    const starSize = Math.floor(Math.random() * 6) + 3; // 3 + [0..5] = 3..8
     
-    // Рисуем звёздочку вместо точки
+    // Рисуем ззвезду
     drawStar(art, dots[i].x, dots[i].y, starSize);
     }
 
@@ -192,7 +191,7 @@ function getColor(i){
     let c = Math.floor(cfg.baseColor - cfg.dispColor + i * (cfg.dispColor/cfg.max_dots));
     return `rgb(${c},${c},${c})`;
 }
-
+// влево-вправо - регулируем максимально-возможную длину линии: больше длина - больше линий будет рисовать
 function keyPress(e){
     switch(e.keyCode){
         case 37: //left
@@ -252,8 +251,7 @@ var MouseCoords = {
 }
 
 
-//start here
-
+//собственно - тут и погнали
 let canvas = document.getElementById('c_lines');
 let art = canvas.getContext('2d');
 
@@ -274,12 +272,11 @@ document.onmousemove = function(e)
 setInterval(plot, cfg.delay);
 
 //plot(cfg.max_dots);
-
-
     </script>
     
     <div class="status" id="dist">0</div>
     <div class="status" id="lines">0</div>
     
 </body>
+
 </html>
