@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lines</title>
+</head>
+<body>
+    <style>
+        body{
+            padding: 0;
+            margin: 0;
+        }
+        canvas{
+            height: 100vh;
+            width: 100vw;
+            position: absolute;
+            margin: 0;
+            padding: 0;
+            z-index: -1;
+        }
+        div.status{
+            font-family: 'Courier New', Courier, monospace;
+            color:aqua;
+            font-size: 22px;
+            margin: 0;
+            padding: 10px 10px;
+        }
+    </style>
+    <canvas id="c_lines"></canvas>
+    <script>
+"use strict";
+
+let cfg = {
+    max_dots: 80,
+    dist: 200,
+    baseSpeed: 0.6,
+    varSpeed: 1,
+    color: "rgb(255, 255, 255)",
+    back: "rgb(50, 60, 80)",
+    baseColor: 255,
+    dispColor: 100,
+    delay: 30,
+    thick: 0.6,
+}
+
+let status = {
+    dots: cfg.max_dots,
+    lines: 0,
+}
+
+let dots = [];
+
+//пара вспомогательных функций просто, чтоб удобней было далее генерить случайные числа
+function rndint(a, base = 0){
+    return(base + Math.floor(Math.random() * a));
+}
+
+function rnd(a, base = 0){
+    return(base + Math.random() * a);
+}
+
+//такой вот элегантный способ создать объект со свойствами и методами
+//потом создаём новую точку вызовом конструктора new dot()
+let dot = function(){
+    //прописываются все индивидуальные свойства каждой точки
+    this.x = rndint(canvas.width);
+    this.y = rndint(canvas.height);
+    this.angle = rndint(360) * Math.PI / 180;
+    this.speed = rnd(cfg.varSpeed, cfg.baseSpeed);
+        this.disp_x = Math.floor(Math.cos(this.angle) * this.speed);
+        this.disp_y = Math.floor(Math.sin(this.angle) * this.speed);
+    this.dir_x = Math.random() > 0.4999 ? 1: -1; 
+    this.dir_y = Math.random() > 0.4999 ? 1: -1; // это признак направления движения для реализации отскока от краёв
+
+    //и метод, обновляющий координаты точки при каждом вызове метода
+    this.update = function(){
+        // let varDispX = Math.random() > 0.4999 ? 1: -1;
+        // let varDispY = Math.random() > 0.4999 ? 1: -1;
+        // this.disp_x += Math.random()/10*varDispX;
+        // this.disp_y += Math.random()/10*varDispY;
+
+        this.x += this.disp_x * this.dir_x;
+        this.y += this.disp_y * this.dir_y;
+
+        if(this.x <= 0 || this.x >= cw){
+            this.dir_x *= -1;
+        }
+
+        if(this.y <=0 || this.y >= ch){
+            this.dir_y *= -1;
+        }
+    };
+};
+
+function init(dot_numbers){
+    art.fillStyle = cfg.back;
+    art.fillRect(0, 0, cw, ch);
+
+    //создаём все точки в массиве dots[]
+    for (let i = 0; i < dot_numbers; i++) {
+        let aDot = new dot();
+        if(aDot.disp_x != 0 && aDot.disp_y !=0){
+            dots.push(aDot);
+        } else{
+            i--;
+        }
+    }
+}
+
+// Функция для рисования 5‑конечной звёздочки
+function drawStar(ctx, x, y, size) {
+    const points = 5;
+    const outerRadius = size;
+    const innerRadius = size * 0.4; // Внутренний радиус (40% от внешнего)
+    
+    ctx.beginPath();
+    for (let i = 0; i < points * 2; i++) {
+        const radius = i % 2 === 0 ? outerRadius : innerRadius;
+        const angle = (i * Math.PI) / points;
+        const px = x + radius * Math.cos(angle);
+        const py = y + radius * Math.sin(angle);
+        
+        if (i === 0) {
+            ctx.moveTo(px, py);
+        } else {
+            ctx.lineTo(px, py);
+        }
+    }
+    ctx.closePath();
+    ctx.fill();
+}
+
+function checkDist(i, j){
+    //теорема Пифагора, ёпта
+    let d = Math.sqrt(Math.pow(dots[i].x - dots[j].x, 2) + Math.pow(dots[i].y - dots[j].y, 2));
+    return(d < cfg.dist);
+}
+
+function getDist(i, j){
+    //теорема Пифагора, ёпта
+    return(Math.sqrt(Math.pow(dots[i].x - dots[j].x, 2) + Math.pow(dots[i].y - dots[j].y, 2)));
+}
+
+function plot(){
+// основная функция смены кадров    
+    art.fillStyle = cfg.back;
+    art.fillRect(0, 0, cw, ch);
+
+//координаты мышки в нулевую точку 
+
+    dots[0].x = MouseCoords.x;
+    dots[0].y = MouseCoords.y;
+
+    //обходим все точки
+    for (let i = 1; i < dots.length; i++) {
+        dots[i].update(); //обновляются координаты точки
+        art.fillStyle = getColor(i);
+
+    // Генерируем случайный размер звёздочки (5–20 пикселей)
+    const starSize = Math.floor(Math.random() * 6) + 3; // 1 + [0..5] = 1..6
+    
+    // Рисуем звёздочку вместо точки
+    drawStar(art, dots[i].x, dots[i].y, starSize);
+    }
+
+    status.lines = 0;
+
+    //обходим все тчоки и рисуем линии, если надо
+    for (let i = 0; i < dots.length; i++) {
+        for (let j = 0; j < dots.length; j++) {
+            if (i == j) {continue}; //сами с собой точки не сравниваем
+
+            let curDist = getDist(i, j);
+            if(curDist < cfg.dist){
+                art.lineWidth = cfg.thick * (1 - curDist / cfg.dist);
+                art.strokeStyle = getColor(i);
+                art.beginPath();
+                art.moveTo(dots[i].x, dots[i].y);
+                art.lineTo(dots[j].x, dots[j].y);
+                art.closePath();
+                art.stroke();
+                status.lines++;
+            }
+        }
+        document.getElementById('dist').innerText = cfg.dist;
+        document.getElementById('lines').innerText = status.lines;
+    }
+}
+
+function getColor(i){
+    let c = Math.floor(cfg.baseColor - cfg.dispColor + i * (cfg.dispColor/cfg.max_dots));
+    return `rgb(${c},${c},${c})`;
+}
+
+function keyPress(e){
+    switch(e.keyCode){
+        case 37: //left
+            cfg.dist--;
+            break;
+        
+        case 38: //up
+            break;
+        
+        case 39: //right
+            cfg.dist++;
+            break;
+        
+        case 40: //down
+            break;
+    }
+}
+
+var MouseCoords = {
+    // координаты x и y
+    x: 0,
+    y: 0,
+
+    // X-координата
+    setX: function(e)
+    {
+        if (e.pageX)
+        {
+            this.x = e.pageX;
+        }
+        else if (e.clientX)
+        {
+            this.x = e.clientX+(document.documentElement.scrollLeft || document.body.scrollLeft) - document.documentElement.clientLeft;
+        }
+        else
+        {
+            this.x = 0;
+        }
+    },
+
+    // Y-координата
+    setY: function(e)
+    {
+        if (e.pageY)
+        {
+            this.y = e.pageY;
+        }
+        else if (e.clientY)
+        {
+            this.y = e.clientY+(document.documentElement.scrollTop || document.body.scrollTop) - document.documentElement.clientTop;
+        }
+        else
+        {
+            this.y = 0;
+        }
+    }
+}
+
+
+//start here
+
+let canvas = document.getElementById('c_lines');
+let art = canvas.getContext('2d');
+
+let cw = canvas.width = canvas.clientWidth; 
+let ch = canvas.height = canvas.clientHeight;
+
+init(cfg.max_dots);
+
+addEventListener("keydown", keyPress);
+
+document.onmousemove = function(e)
+{
+    if (!e) e = window.event;
+    MouseCoords.setX(e);
+    MouseCoords.setY(e);
+};
+
+setInterval(plot, cfg.delay);
+
+//plot(cfg.max_dots);
+
+
+    </script>
+    
+    <div class="status" id="dist">0</div>
+    <div class="status" id="lines">0</div>
+    
+</body>
+</html>
