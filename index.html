@@ -31,6 +31,16 @@
     <script>
 "use strict";
 
+let intervalId = null;
+
+function startInterval() {
+    if (intervalId) {
+        clearInterval(intervalId);
+    }
+    
+    intervalId = setInterval(plot, cfg.delay);
+}
+
 let cfg = {
     max_dots: 80,
     dist: 200,
@@ -60,7 +70,7 @@ function rnd(a, base = 0){
     return(base + Math.random() * a);
 }
 
-//такой вот хитрый способ создать объект со свойствами и методами
+//такой вот элегантный способ создать объект со свойствами и методами
 //потом создаём новую точку вызовом конструктора new dot()
 let dot = function(){
     //прописываются все индивидуальные свойства каждой точки
@@ -148,6 +158,7 @@ function plot(){
     art.fillRect(0, 0, cw, ch);
 
 //координаты мышки в нулевую точку 
+
     dots[0].x = MouseCoords.x;
     dots[0].y = MouseCoords.y;
 
@@ -156,10 +167,10 @@ function plot(){
         dots[i].update(); //обновляются координаты точки
         art.fillStyle = getColor(i);
 
-    // Генерируем случайный размер звездочки (3–8 пикселей)
-    const starSize = Math.floor(Math.random() * 6) + 3; // 3 + [0..5] = 3..8
+    // Генерируем случайный размер звёздочки (5–20 пикселей)
+    const starSize = Math.floor(Math.random() * 6) + 3; // 1 + [0..5] = 1..6
     
-    // Рисуем ззвезду
+    // Рисуем звёздочку вместо точки
     drawStar(art, dots[i].x, dots[i].y, starSize);
     }
 
@@ -184,6 +195,7 @@ function plot(){
         }
         document.getElementById('dist').innerText = cfg.dist;
         document.getElementById('lines').innerText = status.lines;
+        document.getElementById('delay').innerText = cfg.delay;
     }
 }
 
@@ -191,7 +203,7 @@ function getColor(i){
     let c = Math.floor(cfg.baseColor - cfg.dispColor + i * (cfg.dispColor/cfg.max_dots));
     return `rgb(${c},${c},${c})`;
 }
-// влево-вправо - регулируем максимально-возможную длину линии: больше длина - больше линий будет рисовать
+
 function keyPress(e){
     switch(e.keyCode){
         case 37: //left
@@ -199,6 +211,8 @@ function keyPress(e){
             break;
         
         case 38: //up
+            cfg.delay++;
+            startInterval();
             break;
         
         case 39: //right
@@ -206,6 +220,11 @@ function keyPress(e){
             break;
         
         case 40: //down
+            cfg.delay--;
+            if(cfg.delay < 0){
+                cfg.delay = 0;
+            }
+            startInterval();
             break;
     }
 }
@@ -251,7 +270,8 @@ var MouseCoords = {
 }
 
 
-//собственно - тут и погнали
+//start here
+
 let canvas = document.getElementById('c_lines');
 let art = canvas.getContext('2d');
 
@@ -278,6 +298,7 @@ message.style.cssText = `
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 `;
 document.body.appendChild(message);
+
 document.onmousemove = function(e)
 {
     if (!e) e = window.event;
@@ -292,15 +313,16 @@ document.onmousemove = function(e)
     message.style.top = (e.clientY - offsetY) + 'px';
 };
 
-setInterval(plot, cfg.delay);
+startInterval();
 
 //plot(cfg.max_dots);
+
+
     </script>
     
     <div class="status" id="dist">0</div>
     <div class="status" id="lines">0</div>
+    <div class="status" id="delay">0</div>
     
 </body>
-
 </html>
-
