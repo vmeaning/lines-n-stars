@@ -262,11 +262,34 @@ init(cfg.max_dots);
 
 addEventListener("keydown", keyPress);
 
+const message = document.createElement('div');
+message.textContent = 'С новым годом, Акелон!';
+message.style.cssText = `
+    position: fixed;
+    pointer-events: none; /* чтобы не мешал кликам */
+    z-index: 1000;
+    white-space: nowrap; 
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    color: #ffffff; 
+    background: rgba(255, 0, 255, 0.3); 
+    padding: 8px 12px;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+`;
+document.body.appendChild(message);
 document.onmousemove = function(e)
 {
     if (!e) e = window.event;
     MouseCoords.setX(e);
     MouseCoords.setY(e);
+
+    const rect = message.getBoundingClientRect();
+    const offsetX = rect.width / 2;
+    const offsetY = rect.height / 2;
+    
+    message.style.left = (e.clientX - offsetX) + 'px';
+    message.style.top = (e.clientY - offsetY) + 'px';
 };
 
 setInterval(plot, cfg.delay);
@@ -280,3 +303,4 @@ setInterval(plot, cfg.delay);
 </body>
 
 </html>
+
