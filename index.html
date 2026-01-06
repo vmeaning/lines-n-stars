@@ -278,12 +278,12 @@ let ch = canvas.height = canvas.clientHeight;
 init(cfg.max_dots);
 
 addEventListener("keydown", keyPress);
-
+/*
 const message = document.createElement('div');
-message.textContent = 'С новым годом, Акелон!';
+message.textContent = 'С новым годом!';
 message.style.cssText = `
     position: fixed;
-    pointer-events: none; /* чтобы не мешал кликам */
+    pointer-events: none; // чтобы не мешал кликам
     z-index: 1000;
     white-space: nowrap; 
     font-family: Arial, sans-serif;
@@ -295,7 +295,7 @@ message.style.cssText = `
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 `;
 document.body.appendChild(message);
-
+*/
 document.onmousemove = function(e)
 {
     if (!e) e = window.event;
@@ -314,7 +314,6 @@ startInterval();
 
 //plot(cfg.max_dots);
 
-
     </script>
     
     <div class="status" id="dist">0</div>
@@ -323,4 +322,5 @@ startInterval();
     
 </body>
 </html>
+
 
